@@ -1,14 +1,30 @@
-# GitHub 推送命令脚本
-# 请在执行前将 YOUR_USERNAME 替换为您的实际GitHub用户名
+# GitHub 推送配置脚本
+# 请按照以下步骤操作：
+
+# 第一步：确保您已经在GitHub上创建了名为 max-flutter-app 的仓库
+# 第二步：在PowerShell中逐行执行以下命令
 
 # 添加远程仓库
-git remote add origin https://github.com/YOUR_USERNAME/max-flutter-app.git
+git remote add origin https://github.com/blinlincom/max-flutter-app.git
 
-# 设置默认分支名为main
-git branch -M main
+# 验证远程仓库配置
+git remote -v
 
-# 推送到GitHub
+# 推送到GitHub（首次推送）
 git push -u origin main
 
 # 验证推送结果
-git remote -v
+git status
+git log --oneline -3
+
+# 可选：检查远程分支
+git branch -a
+
+# 📖 使用说明：
+# 1. 如果需要使用SSH方式（推荐），请将HTTPS地址替换为：
+#    git@github.com:YOUR_USERNAME/max-flutter-app.git
+# 2. 如果推送失败，可能需要配置GitHub身份验证
+# 3. 对于私有仓库，请确保您有推送权限
+
+# 🔧 故障排除：
+# 如果遇到认证问题，请参考GitHub官方文档配置Personal Access Token
