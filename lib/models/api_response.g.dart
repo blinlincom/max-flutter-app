@@ -19,7 +19,7 @@ ApiResponse<T> _$ApiResponseFromJson<T>(
 
 Map<String, dynamic> _$ApiResponseToJson<T>(
   ApiResponse<T> instance,
-  Object Function(T value) toJsonT,
+  Object? Function(T value) toJsonT,
 ) => <String, dynamic>{
   'code': instance.code,
   'msg': instance.message,
@@ -43,15 +43,15 @@ PageResponse<T> _$PageResponseFromJson<T>(
   T Function(Object? json) fromJsonT,
 ) => PageResponse<T>(
   list: (json['list'] as List<dynamic>).map(fromJsonT).toList(),
-  pageCount: (json['pagecount'] as num).toInt(),
-  currentNumber: json['current_number'],
+  pageCount: (json['pageCount'] as num).toInt(),
+  currentNumber: json['currentNumber'],
 );
 
 Map<String, dynamic> _$PageResponseToJson<T>(
   PageResponse<T> instance,
-  Object Function(T value) toJsonT,
+  Object? Function(T value) toJsonT,
 ) => <String, dynamic>{
   'list': instance.list.map(toJsonT).toList(),
-  'pagecount': instance.pageCount,
-  'current_number': instance.currentNumber,
+  'pageCount': instance.pageCount,
+  'currentNumber': instance.currentNumber,
 };

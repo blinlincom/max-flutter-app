@@ -47,15 +47,25 @@ class UserProvider extends ChangeNotifier {
       final userJson = await StorageUtils.getObject(AppConstants.userInfoKey);
 
       if (token != null && userJson != null) {
-        _userToken = token;
-        _currentUser = UserModel.fromJson(userJson);
-        _isLoggedIn = true;
+        try {
+          _userToken = token;
+          _currentUser = UserModel.fromJson(userJson);
+          _isLoggedIn = true;
 
-        // 设置API服务的token
-        ApiService().setUserToken(token);
+          // 设置API服务的token
+          ApiService().setUserToken(token);
 
-        // 尝试刷新用户信息
-        await _refreshUserInfo();
+          // 尝试刷新用户信息
+          final refreshSuccess = await _refreshUserInfo();
+          if (!refreshSuccess) {
+            debugPrint('刷新用户信息失败，但保持本地数据');
+            // 即使刷新失败，也保持本地的用户信息
+          }
+        } catch (e) {
+          debugPrint('解析本地用户数据失败: $e');
+          // 清除损坏的本地数据
+          await _clearUserData();
+        }
       }
     } catch (e) {
       debugPrint('初始化用户信息失败: $e');
@@ -71,6 +81,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      debugPrint('开始登录: $username');
       final response = await ApiService().login(
         username: username,
         password: password,
@@ -93,20 +104,34 @@ class UserProvider extends ChangeNotifier {
         ApiService().setUserToken(_userToken);
 
         // 获取完整用户信息
-        await _refreshUserInfo();
+        final refreshSuccess = await _refreshUserInfo();
+        if (!refreshSuccess) {
+          debugPrint('登录成功，但获取用户信息失败');
+          // 创建一个基本的用户信息
+          _currentUser = UserModel(
+            id: loginData.id,
+            username: loginData.username,
+          );
+          await StorageUtils.setObject(
+            AppConstants.userInfoKey,
+            _currentUser!.toJson(),
+          );
+        }
 
         _isLoading = false;
         notifyListeners();
+        debugPrint('登录成功');
         return true;
       } else {
         _isLoading = false;
         notifyListeners();
+        debugPrint('登录失败: ${response.message}');
         return false;
       }
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      debugPrint('登录失败: $e');
+      debugPrint('登录异常: $e');
       return false;
     }
   }
@@ -139,7 +164,10 @@ class UserProvider extends ChangeNotifier {
 
   /// 刷新用户信息
   Future<void> refreshUserInfo() async {
-    if (!_isLoggedIn) return;
+    if (!_isLoggedIn) {
+      debugPrint('用户未登录，无法刷新用户信息');
+      return;
+    }
     await _refreshUserInfo();
   }
 
@@ -152,9 +180,16 @@ class UserProvider extends ChangeNotifier {
   }
 
   /// 私有方法：刷新用户信息
-  Future<void> _refreshUserInfo() async {
+  Future<bool> _refreshUserInfo() async {
+    if (_userToken == null) {
+      debugPrint('用户token为空，无法刷新用户信息');
+      return false;
+    }
+
     try {
+      debugPrint('开始刷新用户信息...');
       final response = await ApiService().getCurrentUserInfo();
+
       if (response.isSuccess && response.data != null) {
         _currentUser = response.data;
         // 保存到本地
@@ -163,9 +198,31 @@ class UserProvider extends ChangeNotifier {
           _currentUser!.toJson(),
         );
         notifyListeners();
+        debugPrint('用户信息刷新成功');
+        return true;
+      } else {
+        debugPrint('刷新用户信息失败: 响应为空或不成功');
+        return false;
       }
-    } catch (e) {
+    } on ApiException catch (e) {
       debugPrint('刷新用户信息失败: $e');
+
+      // 如果是认证失败，清除本地数据
+      if (e.message.contains('token') ||
+          e.message.contains('认证') ||
+          e.message.contains('登录')) {
+        debugPrint('认证失败，清除本地数据');
+        await _clearUserData();
+        _currentUser = null;
+        _userToken = null;
+        _isLoggedIn = false;
+        ApiService().setUserToken(null);
+        notifyListeners();
+      }
+      return false;
+    } catch (e) {
+      debugPrint('刷新用户信息异常: $e');
+      return false;
     }
   }
 

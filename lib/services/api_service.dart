@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
 import '../models/api_response.dart';
 import '../models/user_model.dart';
 import '../models/post_model.dart';
+import '../models/app_category_model.dart';
 import '../utils/storage_utils.dart';
 
 /// API服务类
@@ -93,22 +95,48 @@ class ApiService {
     T Function(dynamic)? fromJson,
   }) async {
     try {
+      debugPrint('发送请求: $path');
+      debugPrint('请求参数: $data');
+
       final response = await _dio.post(
         path,
         data: data,
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
+      debugPrint('响应状态码: ${response.statusCode}');
+      debugPrint('响应数据: ${response.data}');
+
+      // 检查响应是否为空或格式错误
+      if (response.data == null) {
+        throw ApiException('服务器返回空数据');
+      }
+
+      // 检查响应格式
+      if (response.data is! Map<String, dynamic>) {
+        throw ApiException('服务器返回数据格式错误');
+      }
+
       final apiResponse = ApiResponse<T>.fromJson(
         response.data,
         fromJson ?? (json) => json as T,
       );
 
+      // 检查业务逻辑错误
+      if (!apiResponse.isSuccess) {
+        throw ApiException('${apiResponse.message}（错误码：${apiResponse.code}）');
+      }
+
       return apiResponse;
     } on DioException catch (e) {
+      debugPrint('网络请求异常: ${e.toString()}');
       throw ApiException.fromDioError(e);
     } catch (e) {
-      throw ApiException('请求失败: $e');
+      debugPrint('请求处理异常: ${e.toString()}');
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw ApiException('请求处理失败: $e');
     }
   }
 
@@ -263,6 +291,56 @@ class ApiService {
   /// 用户签到
   Future<ApiResponse<dynamic>> userSignIn() async {
     return _post<dynamic>(ApiConstants.userSignIn, {});
+  }
+
+  /// 获取应用分类列表
+  Future<ApiResponse<PageResponse<AppCategoryModel>>> getAppCategoryList({
+    int page = 1,
+    int limit = AppConstants.pageSize,
+  }) async {
+    return _post<PageResponse<AppCategoryModel>>(
+      ApiConstants.appCategoryList,
+      {'page': page, 'limit': limit},
+      fromJson: (json) {
+        final data = json as Map<String, dynamic>;
+        return PageResponse<AppCategoryModel>(
+          list: (data['list'] as List)
+              .map(
+                (item) =>
+                    AppCategoryModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList(),
+          pageCount: data['pagecount'] ?? 0,
+          currentNumber: data['current_number'] ?? 1,
+        );
+      },
+    );
+  }
+
+  /// 获取应用子分类列表
+  Future<ApiResponse<PageResponse<AppSubCategoryModel>>>
+  getAppCategoryChildrenList({
+    required int parentId,
+    int page = 1,
+    int limit = AppConstants.pageSize,
+  }) async {
+    return _post<PageResponse<AppSubCategoryModel>>(
+      ApiConstants.appCategoryChildrenList,
+      {'pid': parentId, 'page': page, 'limit': limit},
+      fromJson: (json) {
+        final data = json as Map<String, dynamic>;
+        return PageResponse<AppSubCategoryModel>(
+          list: (data['list'] as List)
+              .map(
+                (item) =>
+                    AppSubCategoryModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList(),
+          pageCount: data['pagecount'] ?? 0,
+          currentNumber: data['current_number'] ?? 1,
+        );
+      },
+    );
   }
 
   /// 获取APP信息

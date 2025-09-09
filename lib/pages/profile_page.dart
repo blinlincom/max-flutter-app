@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_theme.dart';
 import '../providers/user_provider.dart';
+import '../models/user_model.dart';
 import 'login_page.dart';
 
 /// 用户个人中心页面
@@ -96,7 +98,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   /// 构建已登录视图
   Widget _buildLoggedInView(UserProvider userProvider) {
-    final user = userProvider.currentUser!;
+    final user = userProvider.currentUser;
+
+    // 如果用户信息为空，显示加载状态
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return CustomScrollView(
       slivers: [
@@ -267,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   /// 构建统计信息区域
-  Widget _buildStatsSection(user) {
+  Widget _buildStatsSection(UserModel user) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),

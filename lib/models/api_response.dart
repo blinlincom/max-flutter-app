@@ -6,6 +6,7 @@ part 'api_response.g.dart';
 @JsonSerializable(genericArgumentFactories: true)
 class ApiResponse<T> {
   final int code;
+  @JsonKey(name: 'msg')
   final String message;
   final T? data;
   final int? timestamp;
@@ -35,7 +36,9 @@ class ApiResponse<T> {
 @JsonSerializable(genericArgumentFactories: true)
 class PageResponse<T> {
   final List<T> list;
+  @JsonKey(name: 'pagecount')
   final int pageCount;
+  @JsonKey(name: 'current_number')
   final dynamic currentNumber;
 
   const PageResponse({

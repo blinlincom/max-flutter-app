@@ -4,7 +4,7 @@ class ApiConstants {
   static const String baseUrl = 'http://api.blinlin.com/api';
 
   /// APP ID
-  static const int appId = 10000;
+  static const int appId = 1;
 
   /// API接口路径
   // APP相关
@@ -56,6 +56,12 @@ class ApiConstants {
   static const String getProductInformation = '/get_product_information';
   static const String buyGoods = '/buy_goods';
   static const String getOrderRecord = '/get_order_record';
+
+  // 应用商店相关
+  static const String appCategoryList = '/app_category_list';
+  static const String appCategoryChildrenList = '/app_category_children_list';
+  static const String getAppsList = '/get_apps_list';
+  static const String getAppsInformation = '/get_apps_information';
 
   // 论坛相关
   static const String getSectionList = '/get_section_list';

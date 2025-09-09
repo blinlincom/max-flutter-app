@@ -1,0 +1,14 @@
+# GitHub 推送命令脚本
+# 请在执行前将 YOUR_USERNAME 替换为您的实际GitHub用户名
+
+# 添加远程仓库
+git remote add origin https://github.com/YOUR_USERNAME/max-flutter-app.git
+
+# 设置默认分支名为main
+git branch -M main
+
+# 推送到GitHub
+git push -u origin main
+
+# 验证推送结果
+git remote -v
