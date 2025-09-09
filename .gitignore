@@ -1,9 +1,61 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
+# Flutter相关
+.dart_tool/
+.packages
+.metadata
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.pub-cache/
+.pub/
+/coverage/
+
+# IDE相关
+.idea/
+.vscode/
 *.swp
+*.swo
+*~
+*.iml
+*.ipr
+*.iws
+
+# Android相关
+android/.gradle/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# iOS相关
+ios/Pods/
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/xcuserdata/
+ios/.symlinks/
+
+# Web相关
+web/build/
+
+# 系统文件
 .DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+*.class
+*.pyc
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 其他临时文件
+*.swp
 .atom/
 .build/
 .buildlog/
@@ -12,34 +64,6 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
-
-# Symbolication related
+# 符号化和混淆相关
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
