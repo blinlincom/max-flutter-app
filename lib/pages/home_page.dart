@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 import '../constants/app_theme.dart';
+import '../constants/app_constants.dart'; // 添加AppConstants导入
 import '../widgets/search_bar_widget.dart';
 import '../widgets/category_icon.dart';
 import '../utils/category_icon_manager.dart';
+import '../utils/storage_utils.dart'; // 添加StorageUtils导入
 import '../services/api_service.dart';
 import '../models/app_category_model.dart';
+import '../models/stats_model.dart';
+import '../models/post_model.dart'; // 添加PostModel导入
 
 /// 首页 - 小米风格现代化设计
 class HomePage extends StatefulWidget {
@@ -26,6 +30,14 @@ class _HomePageState extends State<HomePage>
   late PageController _bannerPageController;
   Timer? _bannerTimer;
 
+  // 添加统计数据相关变量
+  StatsModel? _statsData;
+  bool _isLoadingStats = false;
+
+  // 添加热门帖子相关变量
+  List<PostModel> _popularPosts = [];
+  bool _isLoadingPopularPosts = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,11 +52,16 @@ class _HomePageState extends State<HomePage>
     // 初始化轮播图控制器
     _bannerPageController = PageController(viewportFraction: 0.88);
 
-    _loadCategories();
+    // 启动动画
     _animationController.forward();
 
-    // 启动自动轮播
+    // 启动轮播图定时器
     _startBannerTimer();
+
+    // 加载数据
+    _loadCategories();
+    _loadStatsData(); // 加载统计数据
+    _loadPopularPosts(); // 加载热门帖子
   }
 
   @override
@@ -108,6 +125,65 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  /// 加载统计数据
+  Future<void> _loadStatsData() async {
+    setState(() {
+      _isLoadingStats = true;
+    });
+
+    try {
+      final response = await ApiService().getAppStatisticalData();
+      if (response.isSuccess && response.data != null) {
+        setState(() {
+          _statsData = response.data;
+        });
+
+        debugPrint('成功加载统计数据');
+      } else {
+        debugPrint('获取统计数据失败: ${response.message}');
+      }
+    } catch (e) {
+      debugPrint('获取统计数据错误: $e');
+    } finally {
+      setState(() {
+        _isLoadingStats = false;
+      });
+    }
+  }
+
+  /// 加载热门帖子数据
+  Future<void> _loadPopularPosts() async {
+    setState(() {
+      _isLoadingPopularPosts = true;
+    });
+
+    try {
+      // 检查用户是否登录（通过检查是否有用户token）
+      final userToken = await StorageUtils.getString(AppConstants.userTokenKey);
+      final includeUserToken = userToken != null && userToken.isNotEmpty;
+
+      final response = await ApiService().getPopularPosts(
+        limit: 10,
+        includeUserToken: includeUserToken, // 根据用户登录状态决定是否传递usertoken
+      );
+      if (response.isSuccess && response.data != null) {
+        setState(() {
+          _popularPosts = response.data!.list;
+        });
+
+        debugPrint('成功加载 ${_popularPosts.length} 个热门帖子');
+      } else {
+        debugPrint('获取热门帖子失败: ${response.message}');
+      }
+    } catch (e) {
+      debugPrint('获取热门帖子错误: $e');
+    } finally {
+      setState(() {
+        _isLoadingPopularPosts = false;
+      });
+    }
+  }
+
   // 轮播图数据 - 小米风格
   final List<BannerItem> _banners = [
     BannerItem(
@@ -130,101 +206,73 @@ class _HomePageState extends State<HomePage>
     ),
   ];
 
-  // 热门源码 - 精选内容
-  final List<SourceCodeItem> _popularCodes = [
-    SourceCodeItem(
-      title: 'Flutter聊天应用',
-      description: '基于Flutter开发的现代化即时通讯应用，支持多媒体消息、群聊、语音通话等功能',
-      author: '开发者小米',
-      downloads: 1250,
-      rating: 4.8,
-      tags: ['Flutter', 'Chat', 'Real-time', 'Material3'],
-      image: 'https://picsum.photos/300/200?random=10',
-    ),
-    SourceCodeItem(
-      title: 'React电商平台',
-      description: '完整的现代化电商解决方案，包含商品展示、购物车、支付、订单管理等完整功能',
-      author: '前端大师',
-      downloads: 890,
-      rating: 4.6,
-      tags: ['React', 'E-commerce', 'TypeScript', 'Next.js'],
-      image: 'https://picsum.photos/300/200?random=11',
-    ),
-    SourceCodeItem(
-      title: 'Vue管理系统',
-      description: 'Vue3 + TypeScript构建的企业级后台管理系统，支持权限管理、数据可视化、多主题',
-      author: '全栈工程师',
-      downloads: 650,
-      rating: 4.7,
-      tags: ['Vue3', 'TypeScript', 'Admin', 'Element Plus'],
-      image: 'https://picsum.photos/300/200?random=12',
-    ),
-  ];
+  // 热门源码 - 精选内容（已替换为从API获取的热门帖子数据）
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      extendBodyBehindAppBar: true,
-      body: RefreshIndicator(
-        onRefresh: _loadCategories,
-        color: AppTheme.primaryColor,
-        child: CustomScrollView(
-          slivers: [
-            // 现代化无标题AppBar
-            SliverAppBar(
-              expandedHeight: 180,
-              floating: false,
-              pinned: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              flexibleSpace: FlexibleSpaceBar(
-                background: _buildModernHeaderBackground(),
-              ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(60),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                  child: _buildIntegratedSearchBar(),
+      extendBodyBehindAppBar: true, // 保持为 true
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _loadCategories,
+            color: AppTheme.primaryColor,
+            child: CustomScrollView(
+              slivers: [
+                // 现代化 AppBar - 保持原样
+                SliverAppBar(
+                  expandedHeight: 180,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: _buildModernHeaderBackground(),
+                  ),
+                  // 保持 AppBar 内容不变
                 ),
-              ),
-            ),
 
-            // 主要内容区域
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8),
+                // 主要内容区域
+                SliverToBoxAdapter(
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
 
-                    // 快捷功能区
-                    _buildQuickActionsSection(),
+                        // 快捷功能区
+                        _buildQuickActionsSection(),
 
-                    const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                    // 轮播图
-                    _buildBannerSection(),
+                        // 轮播图
+                        _buildBannerSection(),
 
-                    const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                    // 分类导航
-                    _buildCategorySection(),
+                        // 分类导航
+                        _buildCategorySection(),
 
-                    const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                    // 热门推荐
-                    _buildPopularSection(),
+                        // 热门推荐
+                        _buildPopularSection(),
 
-                    const SizedBox(height: 20),
-                  ],
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+
+          // 删除浮动搜索按钮
+          // _buildFloatingSearchButton(),
+        ],
       ),
     );
   }
@@ -247,65 +295,72 @@ class _HomePageState extends State<HomePage>
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 顶部状态栏区域
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 左侧时间显示
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(),
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimaryColor,
-                          height: 1.2,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // 防止溢出
+              children: [
+                // 顶部状态栏区域
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 左侧时间显示
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _getGreeting(),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimaryColor,
+                            height: 1.2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '发现优质开源项目 ✨',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textSecondaryColor,
-                          fontWeight: FontWeight.w400,
+                        const SizedBox(height: 4),
+                        Text(
+                          '发现优质开源项目 ✨',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.textSecondaryColor,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-                  // 右侧操作按钮
-                  Row(
-                    children: [
-                      _buildGlassmorphismButton(
-                        icon: Icons.qr_code_scanner_rounded,
-                        onTap: () {
-                          // TODO: 扫码功能
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      _buildGlassmorphismButton(
-                        icon: Icons.notifications_none_rounded,
-                        showBadge: true,
-                        onTap: () {
-                          // TODO: 通知页面
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    // 右侧操作按钮 - 在扫码功能前面添加搜索按钮
+                    Row(
+                      children: [
+                        _buildGlassmorphismButton(
+                          icon: Icons.search_rounded,
+                          onTap: _showSearchDialog, // 添加搜索功能
+                        ),
+                        const SizedBox(width: 12),
+                        _buildGlassmorphismButton(
+                          icon: Icons.qr_code_scanner_rounded,
+                          onTap: () {
+                            // TODO: 扫码功能
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        _buildGlassmorphismButton(
+                          icon: Icons.notifications_none_rounded,
+                          showBadge: true,
+                          onTap: () {
+                            // TODO: 通知页面
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
 
-              const SizedBox(height: 20),
-
-              // 数据统计卡片 - 毛玻璃效果
-              _buildStatsCard(),
-            ],
+                const SizedBox(height: 16), // 缩小间距
+                // 数据统计卡片 - 毛玻璃效果
+                _buildStatsCard(),
+              ],
+            ),
           ),
         ),
       ),
@@ -386,27 +441,39 @@ class _HomePageState extends State<HomePage>
         children: [
           Expanded(
             child: _buildStatItem(
-              icon: Icons.code_rounded,
-              count: '1.2K+',
-              label: '开源项目',
+              icon: Icons.visibility_rounded,
+              count: _isLoadingStats
+                  ? '...'
+                  : _statsData != null
+                  ? '${_formatNumber(_statsData!.viewCount)}+'
+                  : '128K+',
+              label: '访问量',
               color: AppTheme.primaryColor,
             ),
           ),
-          Container(width: 1, height: 30, color: Colors.white.withOpacity(0.3)),
+          Container(width: 1, color: Colors.white.withOpacity(0.3)),
           Expanded(
             child: _buildStatItem(
               icon: Icons.people_rounded,
-              count: '58K+',
-              label: '开发者',
+              count: _isLoadingStats
+                  ? '...'
+                  : _statsData != null
+                  ? '${_formatNumber(_statsData!.userCount)}+'
+                  : '58K+',
+              label: '用户',
               color: AppTheme.accentColor,
             ),
           ),
-          Container(width: 1, height: 30, color: Colors.white.withOpacity(0.3)),
+          Container(width: 1, color: Colors.white.withOpacity(0.3)),
           Expanded(
             child: _buildStatItem(
-              icon: Icons.star_rounded,
-              count: '4.8',
-              label: '平均评分',
+              icon: Icons.person_add_rounded,
+              count: _isLoadingStats
+                  ? '...'
+                  : _statsData != null
+                  ? _formatNumber(_statsData!.todayUserCount)
+                  : '256',
+              label: '今日注册',
               color: AppTheme.warningColor,
             ),
           ),
@@ -423,6 +490,7 @@ class _HomePageState extends State<HomePage>
     required Color color,
   }) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           width: 32,
@@ -441,63 +509,91 @@ class _HomePageState extends State<HomePage>
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimaryColor,
           ),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor),
+          textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
-  /// 构建集成搜索栏
-  Widget _buildIntegratedSearchBar() {
-    return GestureDetector(
-      onTap: () {
-        _showSearchDialog();
-      },
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
+  /// 构建右上角浮动搜索按钮
+  Widget _buildFloatingSearchButton() {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 16,
+      right: 20,
+      child: GestureDetector(
+        onTap: _showSearchDialog,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppTheme.primaryColor.withOpacity(0.2),
+              width: 1.5,
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.search_rounded, size: 20, color: AppTheme.textHintColor),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '搜索开源项目、技术文档...',
-                style: TextStyle(fontSize: 14, color: AppTheme.textHintColor),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: -2,
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 40,
+                offset: const Offset(0, 16),
+                spreadRadius: -8,
               ),
-              child: Text(
-                'AI',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
+            ],
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Icon(
+                  Icons.search_rounded,
+                  size: 24,
                   color: AppTheme.primaryColor,
                 ),
               ),
-            ),
-          ],
+              // AI标识
+              Positioned(
+                right: 4,
+                top: 4,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'AI',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -603,23 +699,41 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  /// 显示搜索对话框
+  /// 显示搜索对话框 - 无斑马线效果的优化版本
   void _showSearchDialog() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      enableDrag: true,
+      isDismissible: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.9,
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: Colors.white, // 确保背景为纯白色
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
-            // 搜索栏
+            // 顶部指示条
+            Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 4),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // 搜索栏区域
             Container(
               padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.white, // 确保背景为白色
+                border: Border(
+                  bottom: BorderSide(color: AppTheme.separatorColor, width: 1),
+                ),
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -634,6 +748,13 @@ class _HomePageState extends State<HomePage>
                   const SizedBox(width: 12),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.textSecondaryColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
                     child: const Text('取消'),
                   ),
                 ],
@@ -641,33 +762,104 @@ class _HomePageState extends State<HomePage>
             ),
             // 搜索建议
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  const Text(
-                    '热门搜索',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimaryColor,
+              child: Container(
+                color: Colors.white, // 确保背景为纯白色
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  physics: const BouncingScrollPhysics(), // 使用更平滑的滚动物理效果
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Text(
+                        '热门搜索',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      'Flutter',
-                      'React',
-                      'Vue',
-                      'SpringBoot',
-                      '微信小程序',
-                      'Android',
-                      'iOS',
-                      'Python',
-                    ].map((tag) => _buildSearchTag(tag)).toList(),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Flutter',
+                          'React',
+                          'Vue',
+                          'SpringBoot',
+                          '微信小程序',
+                          'Android',
+                          'iOS',
+                          'Python',
+                        ].map((tag) => _buildSearchTag(tag)).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // 添加搜索历史部分
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Text(
+                        '搜索历史',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // 搜索历史列表 - 消除可能的斑马线效果
+                    ...['Flutter开源项目', 'React组件库', 'Vue3管理系统'].map(
+                      (history) => Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white, // 确保每个项目背景为白色
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppTheme.dividerColor,
+                            width: 0.5,
+                          ),
+                        ),
+                        child: ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Icons.history_rounded,
+                            size: 18,
+                            color: AppTheme.textHintColor,
+                          ),
+                          title: Text(
+                            history,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondaryColor,
+                            ),
+                          ),
+                          trailing: GestureDetector(
+                            onTap: () {
+                              // 删除历史记录
+                            },
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: AppTheme.textHintColor,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            debugPrint('点击搜索历史: $history');
+                          },
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -676,7 +868,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  /// 构建搜索标签
+  /// 构建搜索标签 - 无斑马线效果
   Widget _buildSearchTag(String tag) {
     return GestureDetector(
       onTap: () {
@@ -686,15 +878,26 @@ class _HomePageState extends State<HomePage>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppTheme.containerColor,
+          color: Colors.white, // 确保背景为白色
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.dividerColor, width: 0.5),
+          border: Border.all(
+            color: AppTheme.primaryColor.withOpacity(0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
         ),
         child: Text(
           tag,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppTheme.textSecondaryColor,
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
@@ -705,7 +908,7 @@ class _HomePageState extends State<HomePage>
   Widget _buildBannerSection() {
     return Column(
       children: [
-        Container(
+        SizedBox(
           height: 220,
           child: GestureDetector(
             onTapDown: (_) => _stopBannerTimer(),
@@ -903,7 +1106,6 @@ class _HomePageState extends State<HomePage>
                                     letterSpacing: 0.5,
                                   ),
                                   maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
 
                                 const SizedBox(height: 8),
@@ -918,7 +1120,6 @@ class _HomePageState extends State<HomePage>
                                     fontWeight: FontWeight.w400,
                                   ),
                                   maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
 
                                 const SizedBox(height: 16),
@@ -1018,7 +1219,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  /// 构建分类导航区域 - 现代化网格卡片设计
+  /// 构建分类导航区域 - 精美的单行水平布局
   Widget _buildCategorySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1070,7 +1271,7 @@ class _HomePageState extends State<HomePage>
 
               // 加载指示器或更多按钮
               if (_isLoadingCategories)
-                Container(
+                SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(
@@ -1120,10 +1321,10 @@ class _HomePageState extends State<HomePage>
 
         const SizedBox(height: 20),
 
-        // 分类网格区域
+        // 精美的单行水平布局
         if (_categories.isEmpty && !_isLoadingCategories)
           Container(
-            height: 140,
+            height: 100,
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1165,20 +1366,14 @@ class _HomePageState extends State<HomePage>
           )
         else
           Container(
+            height: 100,
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: _categories.length > 8 ? 8 : _categories.length,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length,
               itemBuilder: (context, index) {
                 final category = _categories[index];
-                return _buildModernCategoryItem(category, index);
+                return _buildHorizontalCategoryItem(category, index);
               },
             ),
           ),
@@ -1186,109 +1381,66 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  /// 构建现代化分类项
-  Widget _buildModernCategoryItem(AppSubCategoryModel category, int index) {
+  /// 构建水平排列的分类项 - 精美设计
+  Widget _buildHorizontalCategoryItem(AppSubCategoryModel category, int index) {
     final categoryColor = CategoryIconManager.getColorById(category.id);
 
-    return GestureDetector(
-      onTap: () {
-        debugPrint('点击分类: ${category.name} (ID: ${category.id})');
-      },
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200 + (index * 50)),
-        curve: Curves.easeOutBack,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: categoryColor.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-                spreadRadius: -2,
+    return Container(
+      width: 80,
+      margin: EdgeInsets.only(right: index == _categories.length - 1 ? 0 : 16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 圆形图标容器
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: categoryColor.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(
+                color: categoryColor.withOpacity(0.2),
+                width: 1,
               ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: -4,
+            ),
+            child: Center(
+              child: CategoryIcon(
+                networkIconUrl: category.icon,
+                categoryName: category.name,
+                categoryId: category.id,
+                size: 26,
+                color: categoryColor,
               ),
-            ],
-            border: Border.all(
-              color: categoryColor.withOpacity(0.08),
-              width: 1,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 图标容器优化
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      categoryColor.withOpacity(0.1),
-                      categoryColor.withOpacity(0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: categoryColor.withOpacity(0.15),
-                    width: 1.5,
-                  ),
-                ),
-                child: CategoryIcon(
-                  networkIconUrl: category.icon,
-                  categoryName: category.name,
-                  categoryId: category.id,
-                  size: 24,
-                  color: categoryColor,
-                ),
-              ),
 
-              const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-              // 分类名称优化
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  category.name,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimaryColor,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-
-              const SizedBox(height: 2),
-
-              // 小点装饰
-              Container(
-                width: 20,
-                height: 2,
-                decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            ],
+          // 分类名称
+          Text(
+            category.name,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textPrimaryColor,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
+        ],
       ),
     );
   }
 
-  /// 构建热门推荐区域 - 现代化卡片设计
+  /// 构建热门推荐区域 - 现代简约设计
   Widget _buildPopularSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1297,7 +1449,7 @@ class _HomePageState extends State<HomePage>
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // 标题区域优化
+              // 标题区域 - 简约设计
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1305,49 +1457,32 @@ class _HomePageState extends State<HomePage>
                     Row(
                       children: [
                         Container(
-                          width: 4,
-                          height: 20,
+                          width: 3,
+                          height: 16,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor,
-                                AppTheme.primaryColor.withOpacity(0.6),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            borderRadius: BorderRadius.circular(2),
+                            color: AppTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(1.5),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.local_fire_department_rounded,
-                              size: 20,
-                              color: AppTheme.primaryColor,
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              '热门推荐',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimaryColor,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: 10),
+                        const Text(
+                          '热门推荐',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimaryColor,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Padding(
-                      padding: const EdgeInsets.only(left: 16),
+                      padding: const EdgeInsets.only(left: 13),
                       child: Text(
-                        '精选优质内容，每日更新',
+                        '发现社区热门内容',
                         style: TextStyle(
-                          fontSize: 13,
-                          color: AppTheme.textSecondaryColor,
+                          fontSize: 12,
+                          color: AppTheme.textHintColor,
                         ),
                       ),
                     ),
@@ -1355,274 +1490,148 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
 
-              // 更多按钮
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryColor.withOpacity(0.1),
-                      AppTheme.primaryColor.withOpacity(0.05),
-                    ],
+              // 更多按钮 - 简约设计
+              TextButton(
+                onPressed: () {
+                  // TODO: 跳转到更多热门内容页面
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withOpacity(0.2),
-                    width: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: AppTheme.primaryColor.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '查看更多',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 12,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ],
+                child: Text(
+                  '更多',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
-        // 卡片列表
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: _popularCodes.length,
-          itemBuilder: (context, index) {
-            final code = _popularCodes[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: _buildModernSourceCodeCard(code, index),
-            );
-          },
-        ),
+        // 热门内容列表
+        if (_isLoadingPopularPosts)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else if (_popularPosts.isEmpty)
+          Container(
+            height: 120,
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.dividerColor.withOpacity(0.5),
+                width: 0.5,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.article_outlined,
+                  size: 32,
+                  color: AppTheme.textHintColor,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '暂无热门内容',
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '稍后再试试吧',
+                  style: TextStyle(color: AppTheme.textHintColor, fontSize: 12),
+                ),
+              ],
+            ),
+          )
+        else
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _popularPosts.length,
+              itemBuilder: (context, index) {
+                final post = _popularPosts[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: _buildPopularPostItem(post),
+                );
+              },
+            ),
+          ),
       ],
     );
   }
 
-  /// 构建现代化源码卡片
-  Widget _buildModernSourceCodeCard(SourceCodeItem code, int index) {
+  /// 构建热门帖子项 - 简约列表样式
+  Widget _buildPopularPostItem(PostModel post) {
     return GestureDetector(
       onTap: () {
-        debugPrint('点击源码: ${code.title}');
+        debugPrint('点击帖子: ${post.title}');
       },
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300 + (index * 100)),
-        curve: Curves.easeOutBack,
+      child: Container(
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-              spreadRadius: -4,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 40,
-              offset: const Offset(0, 16),
-              spreadRadius: -8,
-            ),
-          ],
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: AppTheme.dividerColor.withOpacity(0.5),
             width: 0.5,
           ),
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 头部图片区域
-            Container(
-              height: 160,
-              child: Stack(
-                children: [
-                  // 背景图片
-                  ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: CachedNetworkImage(
-                        imageUrl: code.image,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor.withOpacity(0.1),
-                                AppTheme.primaryColor.withOpacity(0.05),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.code_rounded,
-                              size: 32,
-                              color: AppTheme.primaryColor.withOpacity(0.5),
-                            ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor.withOpacity(0.15),
-                                AppTheme.primaryColor.withOpacity(0.08),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.code_rounded,
-                              size: 32,
-                              color: AppTheme.primaryColor.withOpacity(0.7),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+            // 左侧图片区域（如果有的话）
+            if (post.imageUrls != null && post.imageUrls!.isNotEmpty)
+              Container(
+                width: 80,
+                height: 80,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: NetworkImage(post.imageUrls!.first),
+                    fit: BoxFit.cover,
                   ),
-
-                  // 渐变遮罩
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.1),
-                          Colors.black.withOpacity(0.3),
-                        ],
-                        stops: const [0.0, 0.7, 1.0],
-                      ),
-                    ),
-                  ),
-
-                  // 评分和下载量
-                  Positioned(
-                    top: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star_rounded,
-                            size: 14,
-                            color: AppTheme.warningColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            code.rating.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 下载量
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.download_rounded,
-                            size: 14,
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${code.downloads}',
-                            style: TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
 
-            // 内容区域
-            Padding(
-              padding: const EdgeInsets.all(20),
+            // 右侧内容区域 - 根据是否有图片调整布局
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 标题
                   Text(
-                    code.title,
+                    post.title,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                       color: AppTheme.textPrimaryColor,
                       height: 1.3,
                     ),
@@ -1630,54 +1639,81 @@ class _HomePageState extends State<HomePage>
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
                   // 描述
                   Text(
-                    code.description,
+                    post.content,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: AppTheme.textSecondaryColor,
-                      height: 1.5,
+                      height: 1.4,
                     ),
-                    maxLines: 3,
+                    maxLines:
+                        post.imageUrls != null && post.imageUrls!.isNotEmpty
+                        ? 2
+                        : 3,
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
-                  // 作者信息
+                  // 底部信息
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Icons.person_rounded,
-                          size: 18,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
+                      // 作者和时间
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              code.author,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textPrimaryColor,
+                            // 作者头像
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child:
+                                    post.avatar != null &&
+                                        post.avatar!.isNotEmpty
+                                    ? Image.network(
+                                        post.avatar!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                                  Icons.person_rounded,
+                                                  size: 12,
+                                                  color: AppTheme.primaryColor,
+                                                ),
+                                      )
+                                    : Icon(
+                                        Icons.person_rounded,
+                                        size: 12,
+                                        color: AppTheme.primaryColor,
+                                      ),
                               ),
                             ),
-                            const SizedBox(height: 2),
+
+                            const SizedBox(width: 6),
+
+                            // 作者昵称
                             Text(
-                              '开发者',
+                              post.nickname,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textHintColor,
+                              ),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            // 时间
+                            Text(
+                              post.createTimeAgo,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.textHintColor,
@@ -1686,40 +1722,42 @@ class _HomePageState extends State<HomePage>
                           ],
                         ),
                       ),
+
+                      // 状态标签
+                      if (post.sticky == 1 ||
+                          post.popular == 1 ||
+                          post.featured == 1)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: post.sticky == 1
+                                ? AppTheme.primaryColor.withOpacity(0.1)
+                                : post.popular == 1
+                                ? AppTheme.warningColor.withOpacity(0.1)
+                                : AppTheme.successColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            post.sticky == 1
+                                ? '置顶'
+                                : post.popular == 1
+                                ? '热门'
+                                : '精华',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: post.sticky == 1
+                                  ? AppTheme.primaryColor
+                                  : post.popular == 1
+                                  ? AppTheme.warningColor
+                                  : AppTheme.successColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                     ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 技术标签
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: code.tags.take(4).map((tag) {
-                      final tagColor = _getTagColor(tag);
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: tagColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: tagColor.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: tagColor,
-                          ),
-                        ),
-                      );
-                    }).toList(),
                   ),
                 ],
               ),
@@ -1750,6 +1788,17 @@ class _HomePageState extends State<HomePage>
         return const Color(0xFF6750A4);
       default:
         return AppTheme.primaryColor;
+    }
+  }
+
+  /// 格式化数字显示
+  String _formatNumber(int number) {
+    if (number >= 10000) {
+      return '${(number / 10000).toStringAsFixed(1)}W';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    } else {
+      return number.toString();
     }
   }
 }

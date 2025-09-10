@@ -1,5 +1,5 @@
-name: max_flutter_app
-description: "源码分享社区 - 基于Flutter的跨平台源码分享社区应用"
+name: max
+description: "码享 - 基于Flutter的跨平台源码分享社区应用"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

@@ -7,26 +7,26 @@ part of 'post_model.dart';
 // **************************************************************************
 
 PostModel _$PostModelFromJson(Map<String, dynamic> json) => PostModel(
-  id: (json['postid'] as num).toInt(),
+  id: _toInt(json['postid']),
   title: json['title'] as String,
   content: json['content'] as String,
-  userId: (json['userid'] as num).toInt(),
+  userId: _toInt(json['userid']),
   createTime: json['create_time'] as String,
   updateTime: json['update_time'] as String,
-  status: (json['status'] as num).toInt(),
-  appId: (json['appid'] as num).toInt(),
-  sectionId: (json['section_id'] as num).toInt(),
-  subSectionId: (json['sub_section_id'] as num).toInt(),
-  sticky: (json['sticky'] as num).toInt(),
-  popular: (json['popular'] as num).toInt(),
-  featured: (json['featured'] as num).toInt(),
+  status: _toInt(json['status']),
+  appId: _toInt(json['appid']),
+  sectionId: _toInt(json['section_id']),
+  subSectionId: _toInt(json['sub_section_id']),
+  sticky: _toInt(json['sticky']),
+  popular: _toInt(json['popular']),
+  featured: _toInt(json['featured']),
   videoUrl: json['video_url'] as String?,
   imageUrls: (json['img_url'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
   score: json['score'] as String,
-  paidReading: (json['paid_reading'] as num).toInt(),
-  fileDownloadMethod: (json['file_download_method'] as num).toInt(),
+  paidReading: _toInt(json['paid_reading']),
+  fileDownloadMethod: _toInt(json['file_download_method']),
   videoImage: json['video_img'] as String?,
   username: json['username'] as String,
   nickname: json['nickname'] as String,
@@ -34,15 +34,15 @@ PostModel _$PostModelFromJson(Map<String, dynamic> json) => PostModel(
   userTitles: (json['usertitle'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
-  sex: (json['sex'] as num).toInt(),
+  sex: _toInt(json['sex']),
   signature: json['signature'] as String,
-  exp: (json['exp'] as num).toInt(),
+  exp: _toInt(json['exp']),
   sectionName: json['section_name'] as String,
   sectionIcon: json['section_icon'] as String?,
   subSectionName: json['sub_section_name'] as String,
   ipAddress: json['ip_address'] as String,
   sexName: json['sexName'] as String,
-  isSectionModerator: (json['is_section_moderator'] as num).toInt(),
+  isSectionModerator: _toInt(json['is_section_moderator']),
   badges: (json['badge'] as List<dynamic>?)
       ?.map((e) => BadgeModel.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -50,12 +50,21 @@ PostModel _$PostModelFromJson(Map<String, dynamic> json) => PostModel(
   hierarchy: json['hierarchy'] as String,
   createTimeAgo: json['create_time_ago'] as String,
   updateTimeAgo: json['update_time_ago'] as String,
-  viewCount: (json['view'] as num).toInt(),
-  thumbsCount: (json['thumbs'] as num).toInt(),
-  commentCount: (json['comment'] as num).toInt(),
-  rewardCount: (json['reward'] as num).toInt(),
-  payersCount: (json['payers'] as num).toInt(),
+  viewCount: _toInt(json['view']),
+  thumbsCount: _toInt(json['thumbs']),
+  commentCount: _toInt(json['comment']),
+  rewardCount: _toInt(json['reward']),
+  payersCount: _toInt(json['payers']),
 );
+
+// 添加类型转换辅助函数，处理字符串形式的数字
+int _toInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
 
 Map<String, dynamic> _$PostModelToJson(PostModel instance) => <String, dynamic>{
   'postid': instance.id,
@@ -103,7 +112,7 @@ Map<String, dynamic> _$PostModelToJson(PostModel instance) => <String, dynamic>{
 };
 
 SectionModel _$SectionModelFromJson(Map<String, dynamic> json) => SectionModel(
-  id: (json['id'] as num).toInt(),
+  id: _toInt(json['id']),
   name: json['section_name'] as String,
   icon: json['section_icon'] as String?,
   background: json['section_background'] as String?,
@@ -111,9 +120,9 @@ SectionModel _$SectionModelFromJson(Map<String, dynamic> json) => SectionModel(
   announcement: json['section_announcement'] as String?,
   createTime: json['create_time'] as String,
   forumSection: json['forum_section'] as List<dynamic>?,
-  postCount: (json['postnum'] as num).toInt(),
-  viewCount: (json['viewnum'] as num).toInt(),
-  commentCount: (json['commentnum'] as num).toInt(),
+  postCount: _toInt(json['postnum']),
+  viewCount: _toInt(json['viewnum']),
+  commentCount: _toInt(json['commentnum']),
   subSections: (json['sub_section'] as List<dynamic>?)
       ?.map((e) => SubSectionModel.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -137,7 +146,7 @@ Map<String, dynamic> _$SectionModelToJson(SectionModel instance) =>
 
 SubSectionModel _$SubSectionModelFromJson(Map<String, dynamic> json) =>
     SubSectionModel(
-      id: (json['id'] as num).toInt(),
+      id: _toInt(json['id']),
       name: json['section_name'] as String,
       icon: json['section_icon'] as String?,
     );

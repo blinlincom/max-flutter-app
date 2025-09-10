@@ -1,4 +1,4 @@
-package com.example.max_flutter_app
+package com.blinlin
 
 import io.flutter.embedding.android.FlutterActivity
 

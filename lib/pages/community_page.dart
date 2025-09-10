@@ -10,7 +10,7 @@ import '../widgets/post_card.dart';
 import '../widgets/section_header.dart';
 import 'login_page.dart';
 
-/// 社区页面（论坛系统）
+/// 社区页面（论坛系统） - 小米风格现代化设计
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
 
@@ -70,9 +70,13 @@ class _CommunityPageState extends State<CommunityPage>
           _isLoading = false;
         });
         _refreshController.refreshFailed();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('加载失败: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('加载失败: $e'),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -167,17 +171,18 @@ class _CommunityPageState extends State<CommunityPage>
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('社区'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.textPrimaryColor,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.search_rounded),
             onPressed: () {
               // TODO: 搜索功能
             },
           ),
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add_rounded),
             onPressed: () {
               if (userProvider.isLoggedIn) {
                 // TODO: 发帖页面
@@ -194,9 +199,9 @@ class _CommunityPageState extends State<CommunityPage>
             Tab(text: '推荐'),
             Tab(text: '最新'),
           ],
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          indicatorColor: AppTheme.primaryColor,
+          labelColor: AppTheme.primaryColor,
+          unselectedLabelColor: AppTheme.textSecondaryColor,
         ),
       ),
       body: _isLoading
@@ -215,25 +220,73 @@ class _CommunityPageState extends State<CommunityPage>
   /// 构建板块标签页
   Widget _buildSectionsTab() {
     if (_sections.isEmpty) {
-      return const Center(child: Text('暂无板块数据'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.1),
+                    AppTheme.primaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.category_outlined,
+                size: 40,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '暂无板块数据',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return SmartRefresher(
       controller: _refreshController,
       onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _sections.length,
-        itemBuilder: (context, index) {
-          final section = _sections[index];
-          return SectionHeader(
-            section: section,
-            onTap: () {
-              // TODO: 跳转到板块详情
-              debugPrint('点击板块: ${section.name}');
-            },
-          );
-        },
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadowColor,
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ListView.builder(
+          padding: EdgeInsets.zero,
+          itemCount: _sections.length,
+          itemBuilder: (context, index) {
+            final section = _sections[index];
+            return SectionHeader(
+              section: section,
+              onTap: () {
+                // TODO: 跳转到板块详情
+                debugPrint('点击板块: ${section.name}');
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -241,24 +294,64 @@ class _CommunityPageState extends State<CommunityPage>
   /// 构建推荐标签页
   Widget _buildRecommendedTab() {
     if (_recommendedPosts.isEmpty) {
-      return const Center(child: Text('暂无推荐帖子'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.1),
+                    AppTheme.primaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.article_outlined,
+                size: 40,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '暂无推荐帖子',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return SmartRefresher(
       controller: _refreshController,
       onRefresh: _loadData,
-      child: ListView.builder(
-        itemCount: _recommendedPosts.length,
-        itemBuilder: (context, index) {
-          final post = _recommendedPosts[index];
-          return PostCard(
-            post: post,
-            onTap: () {
-              // TODO: 跳转到帖子详情
-              debugPrint('点击帖子: ${post.title}');
-            },
-          );
-        },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: ListView.builder(
+          itemCount: _recommendedPosts.length,
+          itemBuilder: (context, index) {
+            final post = _recommendedPosts[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: PostCard(
+                post: post,
+                onTap: () {
+                  // TODO: 跳转到帖子详情
+                  debugPrint('点击帖子: ${post.title}');
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -266,7 +359,41 @@ class _CommunityPageState extends State<CommunityPage>
   /// 构建最新标签页
   Widget _buildLatestTab() {
     if (_latestPosts.isEmpty) {
-      return const Center(child: Text('暂无最新帖子'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.1),
+                    AppTheme.primaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.article_outlined,
+                size: 40,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '暂无最新帖子',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return SmartRefresher(
@@ -274,18 +401,24 @@ class _CommunityPageState extends State<CommunityPage>
       onRefresh: _loadData,
       onLoading: _loadMore,
       enablePullUp: true,
-      child: ListView.builder(
-        itemCount: _latestPosts.length,
-        itemBuilder: (context, index) {
-          final post = _latestPosts[index];
-          return PostCard(
-            post: post,
-            onTap: () {
-              // TODO: 跳转到帖子详情
-              debugPrint('点击帖子: ${post.title}');
-            },
-          );
-        },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: ListView.builder(
+          itemCount: _latestPosts.length,
+          itemBuilder: (context, index) {
+            final post = _latestPosts[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: PostCard(
+                post: post,
+                onTap: () {
+                  // TODO: 跳转到帖子详情
+                  debugPrint('点击帖子: ${post.title}');
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -295,6 +428,7 @@ class _CommunityPageState extends State<CommunityPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('需要登录'),
         content: const Text('发帖需要先登录，是否前往登录？'),
         actions: [
@@ -310,6 +444,13 @@ class _CommunityPageState extends State<CommunityPage>
                 MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: const Text('登录'),
           ),
         ],

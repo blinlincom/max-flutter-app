@@ -29,9 +29,10 @@ class AppTheme {
   static const Color textSecondaryColor = Color(0xFF666666);
   static const Color textHintColor = Color(0xFF999999);
 
-  /// 分割线和边框
+  /// 分割线和边框 - 优化颜色避免斑马线效果
   static const Color dividerColor = Color(0xFFEEEEEE);
   static const Color borderColor = Color(0xFFE1E4E8);
+  static const Color separatorColor = Color(0xFFF5F5F5); // 添加更浅的分隔色
 
   /// 状态色
   static const Color errorColor = Color(0xFFFF3B30);

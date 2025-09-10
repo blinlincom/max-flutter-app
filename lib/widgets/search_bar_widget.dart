@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
 
-/// 现代化搜索栏组件 - 小米风格
+/// 现代化搜索栏组件 - 小米风格，无斑马线效果
 class SearchBarWidget extends StatefulWidget {
   final Function(String) onSearch;
   final String? hintText;
@@ -39,12 +39,19 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.containerColor,
+        color: Colors.white, // 确保背景为白色而不是透明色
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
-          color: _hasFocus ? AppTheme.primaryColor : Colors.transparent,
-          width: _hasFocus ? 2 : 0,
+          color: _hasFocus ? AppTheme.primaryColor : AppTheme.dividerColor,
+          width: _hasFocus ? 2 : 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: TextField(
         controller: _controller,
@@ -103,11 +110,16 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                     size: 20,
                   ),
                 ),
-          border: InputBorder.none,
+          border: InputBorder.none, // 移除默认边框以避免冲突
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 16,
           ),
+          filled: false, // 不使用填充色彩
         ),
         style: const TextStyle(
           color: AppTheme.textPrimaryColor,

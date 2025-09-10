@@ -9,6 +9,7 @@ import '../models/api_response.dart';
 import '../models/user_model.dart';
 import '../models/post_model.dart';
 import '../models/app_category_model.dart';
+import '../models/stats_model.dart';
 import '../utils/storage_utils.dart';
 
 /// API服务类
@@ -267,6 +268,41 @@ class ApiService {
     );
   }
 
+  /// 获取热门帖子
+  Future<ApiResponse<PageResponse<PostModel>>> getPopularPosts({
+    int page = 1,
+    int limit = AppConstants.pageSize,
+    bool includeUserToken = true, // 添加参数控制是否包含用户token
+  }) async {
+    // 准备请求参数
+    final Map<String, dynamic> params = {
+      'sort': 'popular', // 使用sort参数获取热门帖子
+      'sortOrder': 'desc', // 按降序排列
+      'page': page,
+      'limit': limit,
+    };
+
+    // 如果需要包含用户token且当前有token，则添加到参数中
+    if (includeUserToken && _userToken != null) {
+      params['usertoken'] = _userToken;
+    }
+
+    return _post<PageResponse<PostModel>>(
+      ApiConstants.getPostsList,
+      params,
+      fromJson: (json) {
+        final data = json as Map<String, dynamic>;
+        return PageResponse<PostModel>(
+          list: (data['list'] as List)
+              .map((item) => PostModel.fromJson(item as Map<String, dynamic>))
+              .toList(),
+          pageCount: data['pagecount'] ?? 0,
+          currentNumber: data['current_number'] ?? 1,
+        );
+      },
+    );
+  }
+
   /// 获取推荐帖子
   Future<ApiResponse<PageResponse<PostModel>>> getRecommendedPosts({
     int page = 1,
@@ -351,6 +387,15 @@ class ApiService {
   /// 增加APP访问量
   Future<ApiResponse<dynamic>> addView() async {
     return _post<dynamic>(ApiConstants.addView, {});
+  }
+
+  /// 获取APP统计数据
+  Future<ApiResponse<StatsModel>> getAppStatisticalData() async {
+    return _post<StatsModel>(
+      ApiConstants.getAppStatisticalData,
+      {},
+      fromJson: (json) => StatsModel.fromJson(json as Map<String, dynamic>),
+    );
   }
 
   /// 退出登录

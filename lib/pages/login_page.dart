@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../constants/app_theme.dart';
 import '../providers/user_provider.dart';
 
-/// 登录页面
+/// 登录页面 - 小米风格现代化设计
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -51,16 +51,19 @@ class _LoginPageState extends State<LoginPage> {
         if (success) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('登录成功'),
+            SnackBar(
+              content: const Text('登录成功'),
               backgroundColor: AppTheme.successColor,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('登录失败，请检查用户名和密码'),
+            SnackBar(
+              content: const Text('登录失败，请检查用户名和密码'),
               backgroundColor: AppTheme.errorColor,
+              behavior: SnackBarBehavior.floating,
             ),
           );
         }
@@ -74,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(
             content: Text('登录失败: $e'),
             backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -86,8 +90,9 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('登录'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.textPrimaryColor,
+        elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
@@ -100,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 48),
 
                 // Logo区域
-                Container(
+                SizedBox(
                   height: 120,
                   child: Column(
                     children: [
@@ -108,8 +113,15 @@ class _LoginPageState extends State<LoginPage> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(20),
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
                         child: const Icon(
                           Icons.code,
@@ -133,66 +145,110 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 48),
 
                 // 用户名输入框
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: '用户名',
-                    hintText: '请输入用户名',
-                    prefixIcon: Icon(Icons.person_outline),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.shadowColor,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return '请输入用户名';
-                    }
-                    return null;
-                  },
+                  child: TextFormField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: '用户名',
+                      hintText: '请输入用户名',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '请输入用户名';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
 
                 const SizedBox(height: 16),
 
                 // 密码输入框
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: '密码',
-                    hintText: '请输入密码',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.shadowColor,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '请输入密码';
-                    }
-                    if (value.length < 6) {
-                      return '密码长度不能少于6位';
-                    }
-                    return null;
-                  },
+                  child: TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: '密码',
+                      hintText: '请输入密码',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '请输入密码';
+                      }
+                      if (value.length < 6) {
+                        return '密码长度不能少于6位';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
 
                 const SizedBox(height: 24),
 
                 // 登录按钮
                 SizedBox(
-                  height: 48,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
                     child: _isLoading
                         ? const SizedBox(
-                            width: 20,
-                            height: 20,
+                            width: 24,
+                            height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -220,12 +276,18 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         // TODO: 忘记密码
                       },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.textSecondaryColor,
+                      ),
                       child: const Text('忘记密码？'),
                     ),
                     TextButton(
                       onPressed: () {
                         // TODO: 注册页面
                       },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
+                      ),
                       child: const Text('立即注册'),
                     ),
                   ],
@@ -252,7 +314,7 @@ class _LoginPageState extends State<LoginPage> {
                         _buildSocialButton(Icons.phone_android, '手机号登录', () {
                           // TODO: 手机号登录
                         }),
-                        const SizedBox(width: 24),
+                        const SizedBox(width: 32),
                         _buildSocialButton(Icons.chat, 'QQ登录', () {
                           // TODO: QQ登录
                         }),
@@ -280,22 +342,39 @@ class _LoginPageState extends State<LoginPage> {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        width: 60,
-        height: 60,
+        width: 64,
+        height: 64,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primaryColor.withOpacity(0.1),
+              AppTheme.primaryColor.withOpacity(0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: AppTheme.shadowColor,
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [Icon(icon, size: 24, color: AppTheme.textSecondaryColor)],
+          children: [
+            Icon(icon, size: 24, color: AppTheme.primaryColor),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ],
         ),
       ),
     );

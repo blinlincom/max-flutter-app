@@ -4,7 +4,7 @@ import '../constants/app_theme.dart';
 import '../providers/user_provider.dart';
 import 'login_page.dart';
 
-/// 消息页面（私聊系统）
+/// 消息页面（私聊系统） - 小米风格现代化设计
 class MessagePage extends StatefulWidget {
   const MessagePage({super.key});
 
@@ -104,17 +104,26 @@ class _MessagePageState extends State<MessagePage>
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(
           title: const Text('消息'),
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          foregroundColor: AppTheme.textPrimaryColor,
+          elevation: 0,
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.message_outlined,
-                size: 80,
-                color: AppTheme.textSecondaryColor,
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(
+                  Icons.message_outlined,
+                  size: 40,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -125,14 +134,27 @@ class _MessagePageState extends State<MessagePage>
                 ),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: const Text('立即登录'),
+              SizedBox(
+                width: 120,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('立即登录'),
+                ),
               ),
             ],
           ),
@@ -144,17 +166,18 @@ class _MessagePageState extends State<MessagePage>
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('消息'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.textPrimaryColor,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.search_rounded),
             onPressed: () {
               // TODO: 搜索消息
             },
           ),
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add_rounded),
             onPressed: () {
               // TODO: 新建私聊
             },
@@ -172,8 +195,8 @@ class _MessagePageState extends State<MessagePage>
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorColor,
                         shape: BoxShape.circle,
                       ),
                       constraints: const BoxConstraints(
@@ -203,8 +226,8 @@ class _MessagePageState extends State<MessagePage>
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorColor,
                         shape: BoxShape.circle,
                       ),
                       constraints: const BoxConstraints(
@@ -226,9 +249,9 @@ class _MessagePageState extends State<MessagePage>
               ),
             ),
           ],
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          indicatorColor: AppTheme.primaryColor,
+          labelColor: AppTheme.primaryColor,
+          unselectedLabelColor: AppTheme.textSecondaryColor,
         ),
       ),
       body: TabBarView(
@@ -241,17 +264,32 @@ class _MessagePageState extends State<MessagePage>
   /// 构建私信标签页
   Widget _buildPrivateMessagesTab() {
     if (_privateMessages.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 80,
-              color: AppTheme.textSecondaryColor,
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.1),
+                    AppTheme.primaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline,
+                size: 40,
+                color: AppTheme.primaryColor,
+              ),
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               '暂无私信消息',
               style: TextStyle(
                 fontSize: 16,
@@ -263,12 +301,27 @@ class _MessagePageState extends State<MessagePage>
       );
     }
 
-    return ListView.builder(
-      itemCount: _privateMessages.length,
-      itemBuilder: (context, index) {
-        final message = _privateMessages[index];
-        return _buildMessageItem(message);
-      },
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowColor,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: _privateMessages.length,
+        itemBuilder: (context, index) {
+          final message = _privateMessages[index];
+          return _buildMessageItem(message);
+        },
+      ),
     );
   }
 
@@ -289,6 +342,12 @@ class _MessagePageState extends State<MessagePage>
                   }
                 });
               },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppTheme.primaryColor.withOpacity(0.3)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               child: const Text('全部标记已读'),
             ),
           ),
@@ -296,17 +355,32 @@ class _MessagePageState extends State<MessagePage>
         // 通知列表
         Expanded(
           child: _systemNotifications.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.notifications_none,
-                        size: 80,
-                        color: AppTheme.textSecondaryColor,
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor.withOpacity(0.1),
+                              AppTheme.primaryColor.withOpacity(0.05),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Icon(
+                          Icons.notifications_none,
+                          size: 40,
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
-                      SizedBox(height: 16),
-                      Text(
+                      const SizedBox(height: 16),
+                      const Text(
                         '暂无系统通知',
                         style: TextStyle(
                           fontSize: 16,
@@ -316,12 +390,27 @@ class _MessagePageState extends State<MessagePage>
                     ],
                   ),
                 )
-              : ListView.builder(
-                  itemCount: _systemNotifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = _systemNotifications[index];
-                    return _buildNotificationItem(notification);
-                  },
+              : Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.shadowColor,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: _systemNotifications.length,
+                    itemBuilder: (context, index) {
+                      final notification = _systemNotifications[index];
+                      return _buildNotificationItem(notification);
+                    },
+                  ),
                 ),
         ),
       ],
@@ -331,23 +420,31 @@ class _MessagePageState extends State<MessagePage>
   /// 构建私信项
   Widget _buildMessageItem(MessageItem message) {
     return Container(
-      color: message.unreadCount > 0
-          ? AppTheme.primaryColor.withOpacity(0.05)
-          : null,
+      decoration: BoxDecoration(
+        color: message.unreadCount > 0
+            ? AppTheme.primaryColor.withOpacity(0.05)
+            : null,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         leading: Stack(
           children: [
             CircleAvatar(
               radius: 24,
               backgroundImage: NetworkImage(message.avatar),
+              backgroundColor: AppTheme.textHintColor.withOpacity(0.1),
             ),
             if (message.isOnline)
               Positioned(
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  width: 12,
-                  height: 12,
+                  width: 14,
+                  height: 14,
                   decoration: BoxDecoration(
                     color: AppTheme.successColor,
                     shape: BoxShape.circle,
@@ -365,6 +462,7 @@ class _MessagePageState extends State<MessagePage>
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimaryColor,
+                  fontSize: 16,
                 ),
               ),
             ),
@@ -389,6 +487,7 @@ class _MessagePageState extends State<MessagePage>
                   fontWeight: message.unreadCount > 0
                       ? FontWeight.w500
                       : FontWeight.normal,
+                  fontSize: 14,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -398,7 +497,7 @@ class _MessagePageState extends State<MessagePage>
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
-                  color: Colors.red,
+                  color: AppTheme.errorColor,
                   shape: BoxShape.circle,
                 ),
                 constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
@@ -425,21 +524,35 @@ class _MessagePageState extends State<MessagePage>
   /// 构建通知项
   Widget _buildNotificationItem(NotificationItem notification) {
     return Container(
-      color: !notification.isRead
-          ? AppTheme.primaryColor.withOpacity(0.05)
-          : null,
+      decoration: BoxDecoration(
+        color: !notification.isRead
+            ? AppTheme.primaryColor.withOpacity(0.05)
+            : null,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.primaryColor.withOpacity(0.15),
+                AppTheme.primaryColor.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             shape: BoxShape.circle,
           ),
           child: Icon(
             notification.icon,
             color: AppTheme.primaryColor,
-            size: 20,
+            size: 22,
           ),
         ),
         title: Row(
@@ -452,6 +565,7 @@ class _MessagePageState extends State<MessagePage>
                   color: notification.isRead
                       ? AppTheme.textSecondaryColor
                       : AppTheme.textPrimaryColor,
+                  fontSize: 16,
                 ),
               ),
             ),
@@ -470,16 +584,17 @@ class _MessagePageState extends State<MessagePage>
             color: notification.isRead
                 ? AppTheme.textSecondaryColor
                 : AppTheme.textPrimaryColor,
+            fontSize: 14,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: !notification.isRead
             ? Container(
-                width: 8,
-                height: 8,
+                width: 10,
+                height: 10,
                 decoration: const BoxDecoration(
-                  color: Colors.red,
+                  color: AppTheme.errorColor,
                   shape: BoxShape.circle,
                 ),
               )

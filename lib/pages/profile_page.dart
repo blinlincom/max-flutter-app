@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_theme.dart';
@@ -7,7 +6,7 @@ import '../providers/user_provider.dart';
 import '../models/user_model.dart';
 import 'login_page.dart';
 
-/// 用户个人中心页面
+/// 用户个人中心页面 - 小米风格现代化设计
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -38,26 +37,28 @@ class _ProfilePageState extends State<ProfilePage> {
         // 应用栏
         SliverAppBar(
           expandedHeight: 200,
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Colors.white,
+          foregroundColor: AppTheme.textPrimaryColor,
+          elevation: 0,
           flexibleSpace: FlexibleSpaceBar(
             background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppTheme.primaryColor,
-                    AppTheme.primaryColor.withOpacity(0.8),
-                  ],
-                ),
-              ),
+              decoration: BoxDecoration(gradient: AppTheme.primaryGradient),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.white24,
-                    child: Icon(Icons.person, size: 40, color: Colors.white),
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      size: 40,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -69,20 +70,27 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
+                  SizedBox(
+                    width: 100,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppTheme.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppTheme.primaryColor,
+                      ),
+                      child: const Text('立即登录'),
                     ),
-                    child: const Text('立即登录'),
                   ),
                 ],
               ),
@@ -110,19 +118,12 @@ class _ProfilePageState extends State<ProfilePage> {
         // 用户信息头部
         SliverAppBar(
           expandedHeight: 220,
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Colors.white,
+          foregroundColor: AppTheme.textPrimaryColor,
+          elevation: 0,
           flexibleSpace: FlexibleSpaceBar(
             background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppTheme.primaryColor,
-                    AppTheme.primaryColor.withOpacity(0.8),
-                  ],
-                ),
-              ),
+              decoration: BoxDecoration(gradient: AppTheme.primaryGradient),
               child: Stack(
                 children: [
                   // 背景图片
@@ -147,29 +148,35 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Row(
                           children: [
-                            ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: userProvider.userAvatar,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  width: 60,
-                                  height: 60,
-                                  color: Colors.white24,
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                  ),
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
                                 ),
-                                errorWidget: (context, url, error) => Container(
-                                  width: 60,
-                                  height: 60,
-                                  color: Colors.white24,
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
+                              ),
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: userProvider.userAvatar,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: Colors.white24,
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                    ),
                                   ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        color: Colors.white24,
+                                        child: const Icon(
+                                          Icons.person,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                 ),
                               ),
                             ),
@@ -236,11 +243,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   Positioned(
                     top: 40,
                     right: 16,
-                    child: IconButton(
-                      icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () {
-                        // TODO: 设置页面
-                      },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.settings, color: Colors.white),
+                        onPressed: () {
+                          // TODO: 设置页面
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -259,13 +272,20 @@ class _ProfilePageState extends State<ProfilePage> {
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.all(16),
-            child: ElevatedButton(
-              onPressed: () => _showLogoutDialog(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.errorColor,
-                foregroundColor: Colors.white,
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () => _showLogoutDialog(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Text('退出登录'),
               ),
-              child: const Text('退出登录'),
             ),
           ),
         ),
@@ -280,22 +300,28 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppTheme.shadowColor,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
-          Expanded(child: _buildStatItem('帖子', user.postCount ?? '0')),
+          Expanded(
+            child: _buildStatItem('帖子', user.postCount?.toString() ?? '0'),
+          ),
           Container(width: 1, height: 40, color: AppTheme.dividerColor),
-          Expanded(child: _buildStatItem('关注', user.followersCount ?? '0')),
+          Expanded(
+            child: _buildStatItem('关注', user.followersCount?.toString() ?? '0'),
+          ),
           Container(width: 1, height: 40, color: AppTheme.dividerColor),
-          Expanded(child: _buildStatItem('粉丝', user.fansCount ?? '0')),
+          Expanded(
+            child: _buildStatItem('粉丝', user.fansCount?.toString() ?? '0'),
+          ),
           Container(width: 1, height: 40, color: AppTheme.dividerColor),
           Expanded(child: _buildStatItem('金币', (user.money ?? 0).toString())),
         ],
@@ -306,6 +332,7 @@ class _ProfilePageState extends State<ProfilePage> {
   /// 构建统计项
   Widget _buildStatItem(String label, String count) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           count,
@@ -385,12 +412,12 @@ class _ProfilePageState extends State<ProfilePage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppTheme.shadowColor,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -399,11 +426,30 @@ class _ProfilePageState extends State<ProfilePage> {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: menuItems.length,
         separatorBuilder: (context, index) =>
-            const Divider(height: 1, indent: 56),
+            const Divider(height: 1, indent: 60),
         itemBuilder: (context, index) {
           final item = menuItems[index];
           return ListTile(
-            leading: Icon(item.icon, color: AppTheme.textSecondaryColor),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.15),
+                    AppTheme.primaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(item.icon, color: AppTheme.primaryColor),
+            ),
             title: Text(
               item.title,
               style: const TextStyle(
@@ -427,6 +473,7 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('退出登录'),
         content: const Text('确定要退出登录吗？'),
         actions: [
@@ -444,15 +491,20 @@ class _ProfilePageState extends State<ProfilePage> {
               await userProvider.logout();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('已退出登录'),
+                  SnackBar(
+                    content: const Text('已退出登录'),
                     backgroundColor: AppTheme.successColor,
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('确定'),
           ),

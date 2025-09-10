@@ -7,15 +7,15 @@ part of 'user_model.dart';
 // **************************************************************************
 
 UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
-  id: (json['id'] as num).toInt(),
+  id: _toInt(json['id']),
   username: json['username'] as String,
   nickname: json['nickname'] as String?,
   avatar: json['usertx'] as String?,
-  money: (json['money'] as num?)?.toInt(),
-  exp: (json['exp'] as num?)?.toInt(),
-  integral: (json['integral'] as num?)?.toInt(),
+  money: _toInt(json['money']),
+  exp: _toInt(json['exp']),
+  integral: _toInt(json['integral']),
   vipTime: json['viptime'] as String?,
-  sex: (json['sex'] as num?)?.toInt(),
+  sex: _toInt(json['sex']),
   sexName: json['sexName'] as String?,
   signature: json['signature'] as String?,
   title: (json['title'] as List<dynamic>?)?.map((e) => e as String).toList(),
@@ -33,8 +33,8 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   isVip: json['vip'] as bool?,
   signLastTime: json['signlasttime'] as String?,
   signToday: json['sign_today'] as bool?,
-  seriesDays: (json['series_days'] as num?)?.toInt(),
-  continuityDays: (json['continuity_days'] as num?)?.toInt(),
+  seriesDays: _toInt(json['series_days']),
+  continuityDays: _toInt(json['continuity_days']),
   invitationCount: json['invitationcount'] as String?,
   followersCount: json['followerscount'] as String?,
   fansCount: json['fanscount'] as String?,
@@ -42,8 +42,8 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   likeCount: json['likecount'] as String?,
   commentCount: json['commentcount'] as String?,
   lastActivityTime: json['last_activity_time'] as String?,
-  followStatus: (json['follow_status'] as num?)?.toInt(),
-  isSectionModerator: (json['is_section_moderator'] as num?)?.toInt(),
+  followStatus: _toInt(json['follow_status']),
+  isSectionModerator: _toInt(json['is_section_moderator']),
 );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
@@ -86,11 +86,11 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
 
 LoginResponse _$LoginResponseFromJson(Map<String, dynamic> json) =>
     LoginResponse(
-      id: (json['id'] as num).toInt(),
+      id: _toInt(json['id']),
       username: json['username'] as String,
       userToken: json['usertoken'] as String,
-      isSectionModerator: (json['is_section_moderator'] as num?)?.toInt(),
-      isSign: (json['is_sign'] as num?)?.toInt(),
+      isSectionModerator: _toInt(json['is_section_moderator']),
+      isSign: _toInt(json['is_sign']),
     );
 
 Map<String, dynamic> _$LoginResponseToJson(LoginResponse instance) =>
@@ -103,12 +103,21 @@ Map<String, dynamic> _$LoginResponseToJson(LoginResponse instance) =>
     };
 
 BadgeModel _$BadgeModelFromJson(Map<String, dynamic> json) => BadgeModel(
-  id: (json['id'] as num).toInt(),
+  id: _toInt(json['id']),
   name: json['name'] as String,
   icon: json['icon'] as String,
-  type: (json['type'] as num).toInt(),
+  type: _toInt(json['type']),
   expirationTime: json['expiration_time'] as String?,
 );
+
+// 添加类型转换辅助函数，处理字符串形式的数字
+int _toInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
 
 Map<String, dynamic> _$BadgeModelToJson(BadgeModel instance) =>
     <String, dynamic>{
