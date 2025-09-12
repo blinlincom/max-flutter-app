@@ -188,7 +188,7 @@ class _HomePageState extends State<HomePage>
   final List<BannerItem> _banners = [
     BannerItem(
       image: 'https://picsum.photos/800/400?random=1',
-      title: '精选Flutter项目',
+      title: '精选项目',
       subtitle: '开源社区热门推荐，优质代码分享',
       color: const Color(0xFF4285F4),
     ),
