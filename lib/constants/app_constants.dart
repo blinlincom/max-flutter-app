@@ -1,7 +1,7 @@
 /// 应用常量
 class AppConstants {
   /// 应用名称
-  static const String appName = '源码分享社区';
+  static const String appName = '码享';
 
   /// 版本信息
   static const String version = '1.0.0';
@@ -30,7 +30,7 @@ class AppConstants {
       'https://via.placeholder.com/200x150/f5f5f5/9e9e9e?text=图片';
 
   /// 轮播图默认高度
-  static const double bannerHeight = 200.0;
+  static const double bannerHeight = 150.0;
 
   /// 帖子预览内容长度
   static const int postPreviewLength = 100;
