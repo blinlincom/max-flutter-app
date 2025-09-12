@@ -407,6 +407,7 @@ class _HomePageState extends State<HomePage>
                     borderRadius: BorderRadius.circular(4),
                     boxShadow: [
                       BoxShadow(
+                        // ignore: deprecated_member_use
                         color: AppTheme.errorColor.withOpacity(0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 1),
@@ -428,9 +429,11 @@ class _HomePageState extends State<HomePage>
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
+        // ignore: deprecated_member_use
         border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
@@ -518,84 +521,6 @@ class _HomePageState extends State<HomePage>
           textAlign: TextAlign.center,
         ),
       ],
-    );
-  }
-
-  /// 构建右上角浮动搜索按钮
-  Widget _buildFloatingSearchButton() {
-    return Positioned(
-      top: MediaQuery.of(context).padding.top + 16,
-      right: 20,
-      child: GestureDetector(
-        onTap: _showSearchDialog,
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppTheme.primaryColor.withOpacity(0.2),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryColor.withOpacity(0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: -2,
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 40,
-                offset: const Offset(0, 16),
-                spreadRadius: -8,
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Icon(
-                  Icons.search_rounded,
-                  size: 24,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              // AI标识
-              Positioned(
-                right: 4,
-                top: 4,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'AI',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -1678,7 +1603,7 @@ class _HomePageState extends State<HomePage>
                                 borderRadius: BorderRadius.circular(10),
                                 child:
                                     post.avatar != null &&
-                                        post.avatar!.isNotEmpty
+                                        post.avatar.isNotEmpty
                                     ? Image.network(
                                         post.avatar!,
                                         fit: BoxFit.cover,

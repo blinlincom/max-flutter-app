@@ -184,12 +184,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      isSelected ? activeIcon : inactiveIcon,
-                      color: isSelected
-                          ? AppTheme.primaryColor
-                          : AppTheme.textSecondaryColor,
-                      size: 24,
+                    child: Opacity(
+                      opacity: opacity,
+                      child: Icon(
+                        isSelected ? activeIcon : inactiveIcon,
+                        color: isSelected
+                            ? AppTheme.primaryColor
+                            : AppTheme.textSecondaryColor,
+                        size: 24,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
