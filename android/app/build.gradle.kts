@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.max_flutter_app"
+    namespace = "com.blinlin"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
