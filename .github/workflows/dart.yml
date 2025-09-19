@@ -47,3 +47,44 @@ jobs:
         with:
           name: apk-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
+
+  build_ios:
+    runs-on: macos-latest
+    # 只在推送到主分支时运行，因为iOS构建需要证书和配置
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: 'x64'
+
+      - name: Show Flutter version info
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install iOS dependencies
+        run: |
+          cd ios
+          pod install
+        env:
+          FLUTTER_ROOT: ${{ github.workspace }}/flutter
+
+      - name: Check iOS environment
+        run: flutter doctor -v
+
+      - name: Build iOS IPA (Debug)
+        run: flutter build ipa --debug --no-codesign
+        # 注意：正式发布需要代码签名，这里使用--no-codesign仅用于测试
+        
+      - name: Upload iOS build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-debug
+          path: build/ios/ipa/*.ipa
